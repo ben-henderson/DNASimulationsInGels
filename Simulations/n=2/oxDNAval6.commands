@@ -44,8 +44,8 @@ variable dumpfreq   equal 100000
 variable trestart   equal 10000000
 
 #total running time
-variable runtime1 equal 180000000
-variable runtime2 equal 200000000
+variable runtime1 equal 100000000
+variable runtime2 equal 100000000
 
 
 
@@ -65,7 +65,7 @@ neighbor 2.0 bin
 neigh_modify every 1 delay 0 check yes
 
 restart ${trestart} oxDNA.equil.N${N}.Restart
-read_data initconf_N${N}
+read_data val6.lammps.txt
 #read_restart data/oxDNA.equil.N${N}.Restart.20000000
 #reset_timestep 0
 
