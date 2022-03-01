@@ -1,0 +1,139 @@
+#The sequence-specific interactions can be turned on/off choosing between seqdep/seqav
+variable seqspec index seqdep
+
+#Specify the temperature of the system (0.1 in SU is equivalent to 300K)
+variable tem equal 0.1
+
+
+### Salt concentration  ####
+############################
+#Specify the salt concentration the system (1.0 in SU is equivalent to 1M [NaCl])
+variable sc   equal 0.15
+
+#Effective charge in elementary charges
+variable qeff equal 0.815
+
+
+### Stacking parameters ####
+############################
+#Temperature-independent coefficient in stacking strength
+variable xi    equal 1.3523
+
+#Coefficient of linear temperature dependence in stacking strength
+variable kappa equal 2.6717
+
+
+### Hbond parameters ####
+#########################
+#Energy: 1.0678 (between base pairs A-T and C-G) and 0 (all other pairs)
+variable eps equal 1.0678
+
+
+#5.- The damp parameter. The default value is 0.03. The accelerated value is 1.0
+variable tdamp    equal 0.03
+variable tdampacc equal 2.5
+
+
+#6.- The total number of nucleotides in the system
+variable N equal 147
+
+variable seed equal 402987
+
+#The times
+variable dumpfreq   equal 100000
+variable trestart   equal 10000000
+
+#total running time
+variable runtime1 equal 180000000
+variable runtime2 equal 200000000
+
+
+
+units lj
+
+dimension 3
+
+newton off
+
+boundary  p p p
+
+atom_style hybrid bond ellipsoid oxdna
+atom_modify sort 0 1.0
+
+# Pair interactions require lists of neighbours to be calculated
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+restart ${trestart} oxDNA.equil.N${N}.Restart
+read_data val4.lammps.txt
+#read_restart data/oxDNA.equil.N${N}.Restart.20000000
+#reset_timestep 0
+
+set atom * mass 3.1575
+
+#Groups
+group all type 1:4
+
+
+# oxDNA2 bond interactions - FENE backbone
+bond_style oxdna2/fene
+bond_coeff * 2.0 0.25 0.7564
+special_bonds lj 0 1 1
+
+# oxDNA2 pair interactions
+pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
+pair_coeff * * oxdna2/excv               2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
+pair_coeff * * oxdna2/stk     ${seqspec} ${tem} ${xi} ${kappa} 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/hbond   ${seqspec} 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna2/hbond   ${seqspec} ${eps} 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna2/hbond   ${seqspec} ${eps} 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff * * oxdna2/xstk               47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68 
+pair_coeff * * oxdna2/coaxstk            58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
+pair_coeff * * oxdna2/dh                 ${tem} ${sc} ${qeff}
+
+
+# NVE ensemble
+fix 1 all nve/asphere
+fix 2 all langevin ${tem} ${tem} ${tdamp} ${seed} angmom 10
+timestep 1e-3
+
+
+#Useful commands when running in parallel
+#comm_style tiled
+#fix 3 all balance 10000 1.1 rcb
+#comm_modify cutoff 2.65
+
+thermo 10000
+thermo_style custom  step  temp
+
+compute erot all erotate/asphere
+compute ekin all ke
+compute epot all pe
+variable erot equal c_erot
+variable ekin equal c_ekin
+variable epot equal c_epot
+variable etot equal c_erot+c_ekin+c_epot
+fix 4 all print ${dumpfreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen no append energy_total.txt
+
+shell mkdir data
+shell cd data
+
+#compute shape all property/atom shapex shapey shapez
+compute quat all property/atom quatw quati quatj quatk
+
+dump out all custom ${dumpfreq} out.data id mol type x y z ix iy iz c_quat[1] c_quat[2] c_quat[3] c_quat[4]
+dump_modify out sort id
+dump_modify out format line "%d %d %d %.6le %.6le %.6le %d %d %d %.6le %.6le %.6le %.6le"
+
+run ${runtime1}
+
+
+
+unfix 1
+unfix 2
+# NVE ensemble
+fix 1 all nve/asphere
+fix 2 all langevin ${tem} ${tem} ${tdampacc} ${seed} angmom 10
+timestep 1e-3
+
+run ${runtime2}
