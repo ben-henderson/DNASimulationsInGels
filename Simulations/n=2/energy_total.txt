@@ -1,0 +1,2 @@
+# Fix print output for fix 4
+0  ekin = 0 |  erot = 0 | epot = -205.081362259833 | etot = -205.081362259833

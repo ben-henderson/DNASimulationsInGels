@@ -1,0 +1,310 @@
+LAMMPS (29 Sep 2021 - Update 2)
+#The sequence-specific interactions can be turned on/off choosing between seqdep/seqav
+variable seqspec index seqdep
+
+#Specify the temperature of the system (0.1 in SU is equivalent to 300K)
+variable tem equal 0.1
+
+
+### Salt concentration  ####
+############################
+#Specify the salt concentration the system (1.0 in SU is equivalent to 1M [NaCl])
+variable sc   equal 0.15
+
+#Effective charge in elementary charges
+variable qeff equal 0.815
+
+
+### Stacking parameters ####
+############################
+#Temperature-independent coefficient in stacking strength
+variable xi    equal 1.3523
+
+#Coefficient of linear temperature dependence in stacking strength
+variable kappa equal 2.6717
+
+
+### Hbond parameters ####
+#########################
+#Energy: 1.0678 (between base pairs A-T and C-G) and 0 (all other pairs)
+variable eps equal 1.0678
+
+
+#5.- The damp parameter. The default value is 0.03. The accelerated value is 1.0
+variable tdamp    equal 0.03
+variable tdampacc equal 2.5
+
+
+#6.- The total number of nucleotides in the system
+variable N equal 147
+
+variable seed equal 402987
+
+#The times
+variable dumpfreq   equal 100000
+variable trestart   equal 10000000
+
+#total running time
+variable runtime1 equal 100000000
+variable runtime2 equal 100000000
+
+
+
+units lj
+
+dimension 3
+
+newton off
+
+boundary  p p p
+
+atom_style hybrid bond ellipsoid oxdna
+WARNING: Write_data command requires newton on to preserve 3'->5' bond polarity (../atom_vec_oxdna.cpp:52)
+WARNING: Atom style hybrid defines both, per-type and per-atom masses; both must be set, but only per-atom masses will be used (../atom_vec_hybrid.cpp:157)
+atom_modify sort 0 1.0
+
+# Pair interactions require lists of neighbours to be calculated
+neighbor 2.0 bin
+neigh_modify every 1 delay 0 check yes
+
+restart ${trestart} oxDNA.equil.N${N}.Restart
+restart 10000000 oxDNA.equil.N${N}.Restart
+restart 10000000 oxDNA.equil.N147.Restart
+read_data val3.lammps.txt
+Reading data file ...
+  orthogonal box = (0.0000000 0.0000000 0.0000000) to (32.000000 32.000000 32.000000)
+  1 by 1 by 1 MPI processor grid
+  reading atoms ...
+  147 atoms
+  reading velocities ...
+  147 velocities
+  147 ellipsoids
+  scanning bonds ...
+  2 = max bonds/atom
+  reading bonds ...
+  144 bonds
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        0        0       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+  read_data CPU = 0.003 seconds
+#read_restart data/oxDNA.equil.N${N}.Restart.20000000
+#reset_timestep 0
+
+set atom * mass 3.1575
+Setting atom values ...
+  147 settings made for mass
+
+#Groups
+group all type 1:4
+147 atoms in group all
+
+
+# oxDNA2 bond interactions - FENE backbone
+bond_style oxdna2/fene
+bond_coeff * 2.0 0.25 0.7564
+special_bonds lj 0 1 1
+Finding 1-2 1-3 1-4 neighbors ...
+  special bond factors lj:    0        1        1       
+  special bond factors coul:  0        0        0       
+     2 = max # of 1-2 neighbors
+     2 = max # of 1-3 neighbors
+     4 = max # of 1-4 neighbors
+     6 = max # of special neighbors
+  special bonds CPU = 0.000 seconds
+
+# oxDNA2 pair interactions
+pair_style hybrid/overlay oxdna2/excv oxdna2/stk oxdna2/hbond oxdna2/xstk oxdna2/coaxstk oxdna2/dh
+pair_coeff * * oxdna2/excv               2.0 0.7 0.675 2.0 0.515 0.5 2.0 0.33 0.32
+pair_coeff * * oxdna2/stk     ${seqspec} ${tem} ${xi} ${kappa} 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep ${tem} ${xi} ${kappa} 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep 0.1 ${xi} ${kappa} 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 ${kappa} 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/stk     seqdep 0.1 1.3523 2.6717 6.0 0.4 0.9 0.32 0.75 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 2.0 0.65 2.0 0.65
+pair_coeff * * oxdna2/hbond   ${seqspec} 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff * * oxdna2/hbond   seqdep 0.0 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna2/hbond   ${seqspec} ${eps} 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna2/hbond   seqdep ${eps} 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 1 4 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna2/hbond   ${seqspec} ${eps} 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna2/hbond   seqdep ${eps} 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff 2 3 oxdna2/hbond   seqdep 1.0678 8.0 0.4 0.75 0.34 0.7 1.5 0 0.7 1.5 0 0.7 1.5 0 0.7 0.46 3.141592653589793 0.7 4.0 1.5707963267948966 0.45 4.0 1.5707963267948966 0.45
+pair_coeff * * oxdna2/xstk               47.5 0.575 0.675 0.495 0.655 2.25 0.791592653589793 0.58 1.7 1.0 0.68 1.7 1.0 0.68 1.5 0 0.65 1.7 0.875 0.68 1.7 0.875 0.68
+pair_coeff * * oxdna2/coaxstk            58.5 0.4 0.6 0.22 0.58 2.0 2.891592653589793 0.65 1.3 0 0.8 0.9 0 0.95 0.9 0 0.95 40.0 3.116592653589793
+pair_coeff * * oxdna2/dh                 ${tem} ${sc} ${qeff}
+pair_coeff * * oxdna2/dh                 0.1 ${sc} ${qeff}
+pair_coeff * * oxdna2/dh                 0.1 0.15 ${qeff}
+pair_coeff * * oxdna2/dh                 0.1 0.15 0.815
+
+
+# NVE ensemble
+fix 1 all nve/asphere
+fix 2 all langevin ${tem} ${tem} ${tdamp} ${seed} angmom 10
+fix 2 all langevin 0.1 ${tem} ${tdamp} ${seed} angmom 10
+fix 2 all langevin 0.1 0.1 ${tdamp} ${seed} angmom 10
+fix 2 all langevin 0.1 0.1 0.03 ${seed} angmom 10
+fix 2 all langevin 0.1 0.1 0.03 402987 angmom 10
+timestep 1e-3
+
+
+#Useful commands when running in parallel
+#comm_style tiled
+#fix 3 all balance 10000 1.1 rcb
+#comm_modify cutoff 2.65
+
+thermo 10000
+thermo_style custom  step  temp
+
+compute erot all erotate/asphere
+compute ekin all ke
+compute epot all pe
+variable erot equal c_erot
+variable ekin equal c_ekin
+variable epot equal c_epot
+variable etot equal c_erot+c_ekin+c_epot
+fix 4 all print ${dumpfreq} "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen no append energy_total.txt
+fix 4 all print 100000 "$(step)  ekin = ${ekin} |  erot = ${erot} | epot = ${epot} | etot = ${etot}" screen no append energy_total.txt
+
+shell mkdir data
+shell cd data
+
+#compute shape all property/atom shapex shapey shapez
+compute quat all property/atom quatw quati quatj quatk
+
+dump out all custom ${dumpfreq} out.data id mol type x y z ix iy iz c_quat[1] c_quat[2] c_quat[3] c_quat[4]
+dump out all custom 100000 out.data id mol type x y z ix iy iz c_quat[1] c_quat[2] c_quat[3] c_quat[4]
+dump_modify out sort id
+dump_modify out format line "%d %d %d %.6le %.6le %.6le %d %d %d %.6le %.6le %.6le %.6le"
+
+run ${runtime1}
+run 100000000
+Neighbor list info ...
+  update every 1 steps, delay 0 steps, check yes
+  max neighbors/atom: 2000, page size: 100000
+  master list distance cutoff = 6.2019411
+  ghost atom cutoff = 6.2019411
+  binsize = 3.1009705, bins = 11 11 11
+  5 neighbor lists, perpetual/occasional/extra = 5 0 0
+  (1) pair oxdna2/excv, perpetual
+      attributes: half, newton off
+      pair build: half/bin/newtoff
+      stencil: full/bin/3d
+      bin: standard
+  (2) pair oxdna2/hbond, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (3) pair oxdna2/xstk, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (4) pair oxdna2/coaxstk, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+  (5) pair oxdna2/dh, perpetual, copy from (1)
+      attributes: half, newton off
+      pair build: copy
+      stencil: none
+      bin: none
+WARNING: FENE bond too long: 0 28 27 1.137300485713286 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 0 30 29 1.440552333317651 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 0 77 76 1.1362070960924882 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 0 79 78 1.436854490682389 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 0 78 79 1.4368544906823877 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 0 126 125 1.003682323712708 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 0 128 127 1.2630900632063264 (../bond_oxdna_fene.cpp:209)
+Per MPI rank memory allocation (min/avg/max) = 9.674 | 9.674 | 9.674 Mbytes
+Step Temp 
+       0            0 
+WARNING: FENE bond too long: 1 28 27 1.1371509436371934 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 1 30 29 1.4404762443233892 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 1 77 76 1.136037036789989 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 1 79 78 1.4365694792338095 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 1 78 79 1.4365694792338104 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 1 126 125 1.003872344597689 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 1 128 127 1.2628214025964106 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 28 27 1.1362980456506429 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 30 29 1.4403097644221767 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 77 76 1.1357480539375342 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 79 78 1.43564028794822 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 78 79 1.4356402879482215 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 126 125 1.0042700521759707 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 2 128 127 1.2623265096326277 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 28 27 1.135199941886761 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 30 29 1.4397276169029702 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 77 76 1.1353132958425638 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 79 78 1.4345036552693473 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 78 79 1.434503655269345 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 126 125 1.0045922824986984 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 3 128 127 1.2617301506245555 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 28 27 1.134006577370872 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 30 29 1.4389715674437253 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 77 76 1.1350414558861472 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 79 78 1.4336742526572215 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 78 79 1.4336742526572201 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 126 125 1.0048378149771366 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 4 128 127 1.2607780688905594 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 28 27 1.1331503285206526 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 30 29 1.4377947562438438 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 77 76 1.1342936585580616 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 79 78 1.4325911692471787 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 78 79 1.4325911692471787 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 126 125 1.004768261209222 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 5 128 127 1.2597254343402131 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 28 27 1.132242609810126 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 30 29 1.436456978494522 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 77 76 1.133737067125259 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 79 78 1.4312576119686151 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 78 79 1.4312576119686171 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 126 125 1.004954501610718 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 6 128 127 1.258470526087321 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 28 27 1.1311526335480597 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 30 29 1.4349944502175456 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 77 76 1.1326418273600949 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 79 78 1.4297055465257986 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 78 79 1.4297055465257973 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 126 125 1.0052530675175133 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 7 128 127 1.2569114553266363 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 28 27 1.1301125597194814 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 30 29 1.4332977526165758 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 77 76 1.1322181288912578 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 79 78 1.4280023157643935 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 78 79 1.4280023157643928 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 126 125 1.0051756102052465 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 8 128 127 1.2555374360026432 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 28 27 1.1292982959505284 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 30 29 1.431321059238289 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 77 76 1.1312866473254781 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 79 78 1.4260278741216499 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 78 79 1.4260278741216506 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 126 125 1.0048233634149495 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 9 128 127 1.2546416549941983 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 28 27 1.1280486838864257 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 30 29 1.4293693667429517 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 77 76 1.1301457625287443 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 79 78 1.4240939085290873 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 78 79 1.4240939085290858 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 126 125 1.004351753158333 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 10 128 127 1.2541230936937053 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 28 27 1.126929655061596 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 30 29 1.4272192180585102 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 77 76 1.129188882046191 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 79 78 1.4217616702286777 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 78 79 1.4217616702286788 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 126 125 1.0035496184646322 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 11 128 127 1.2531951439905167 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 12 28 27 1.1257882112125122 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 12 30 29 1.4248714790901984 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 12 77 76 1.1281742060376407 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 12 79 78 1.419218926057202 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 12 78 79 1.4192189260572055 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too long: 12 126 125 1.0026391569049928 (../bond_oxdna_fene.cpp:209)
+WARNING: FENE bond too lon

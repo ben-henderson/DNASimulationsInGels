@@ -1,0 +1,31 @@
+
+
+*******************************************************************************
+Mon Mar  7 15:14:32 2022
+
+
+FIT:    data read from "N141.oxDNA2.colvar_vs_time" u 1:2
+        format = x:z
+        x range restricted to [2.00000e+08 : *]
+        #datapoints = 1801
+        residuals are weighted equally (unit weight)
+
+function used for fitting: f(x)
+	f(x)=b
+fitted parameters initialized with current variable values
+
+iter      chisq       delta/lim  lambda   b            
+   0 9.9674386557e+02   0.00e+00  1.00e+00    1.000000e+00
+   2 6.0096559477e+01  -4.80e-01  1.00e-02    2.788407e-01
+
+After 2 iterations the fit converged.
+final sum of squares of residuals : 60.0966
+rel. change during last iteration : -4.79973e-06
+
+degrees of freedom    (FIT_NDF)                        : 1800
+rms of residuals      (FIT_STDFIT) = sqrt(WSSR/ndf)    : 0.182721
+variance of residuals (reduced chisquare) = WSSR/ndf   : 0.033387
+
+Final set of parameters            Asymptotic Standard Error
+=======================            ==========================
+b               = 0.278841         +/- 0.004306     (1.544%)

@@ -1,0 +1,198 @@
+unset multiplot
+reset
+set pointsize 0.4
+set border 3 back lt -1 lw 2
+set tics nomirror scale 0.5 #out
+set grid back lt 0 lw 1
+set encoding iso_8859_1
+
+
+##############################
+unset grid
+set size ratio 1
+set xtics offset 0,0.4
+set ylab offset 0.3,0
+set ytics offset 0.4,0
+set xlab offset 0,1
+###############################
+
+
+##########################################
+#DIVERGING COLOURS
+###########################################
+#High concentration of IHF (cooperative)
+set style line 1 lc rgb '#D73027' lw 2# N=24 cooperative red
+set style line 2 lc rgb '#F46D43' lw 2# N=24 random  orange
+set style line 3 lc rgb '#FDAE61' lw 2# N=24 pattern
+set style line 4 lc rgb '#FEE090' lw 2#  pale orange
+set style line 5 lc rgb '#E0F3F8' lw 2# pale blue
+set style line 6 lc rgb '#ABD9E9' lw 2# 
+set style line 7 lc rgb '#74ADD1' lw 2# medium blue
+set style line 8 lc rgb '#4575B4' lw 2# blue
+set style line 9 lc rgb '#D3D3D3' lw 2
+#low concentration of IHF (random)
+############################################
+
+#To adjust the length of the samples:
+set key samplen 1
+#To adjust the vertical spacing of the samples:
+set key spacing 1
+#To adjust the fontsize:
+set key top right font "Arial,18"
+#Justificacion del texto
+set key left
+set key maxrow 3
+#Height and width of the key box can be controlled by "height" and "width"
+#set key width -2
+
+set style fill transparent solid 0.2 noborder
+
+
+
+##########
+#FILES
+##########
+#NUmber of contacts vs time (given in brownian time)
+filen2="N147.oxDNA2.colvar_vs_time"
+filen3="N150.oxDNA2.colvar_vs_time"
+filen4="N153.oxDNA2.colvar_vs_time"
+filen5="N156.oxDNA2.colvar_vs_time"
+
+
+######################
+#PLOT theta12 vs t
+######################
+set key top left vertical maxrows 10 font "Arial,15"
+set xlabel "time [timesteps]" 
+set ylabel "{/Symbol q}_{12}"
+
+set xr[*:*]
+set yr[*:*]
+
+set log x
+set format x "10^{%L}"
+
+f2(x)=a2
+f3(x)=a3
+f4(x)=a4
+f5(x)=a5
+
+
+fit f2(x) filen2 u 1:4 via a2
+fit f3(x) filen3 u 1:4 via a3
+fit f4(x) filen4 u 1:4 via a4
+fit f5(x) filen5 u 1:4 via a5
+
+set pointsize 0.3
+set term qt 1;
+
+plot filen2 u 1:4 w lp t "n=2" ls 9,\
+     f2(x) ls 9,\
+     filen3 u 1:4 w lp t "n=3" ls 7,\
+     f3(x) ls 7,\
+     filen4 u 1:4 w lp t "n=4" ls 5,\
+     f4(x) ls 5,\
+     filen5 u 1:4 w lp t "n=5" ls 3,\
+     f5(x) ls 3
+     
+set term pdfcairo enh solid font "Arial,18" rounded lw 1.5
+set output "plot_theta12_vs_time.pdf"
+rep; set term qt 1; rep;
+
+
+
+######################
+#PLOT theta13 vs t
+######################
+set key top left vertical maxrows 10 font "Arial,15"
+set xlabel "time [10^{5} timesteps]" 
+set ylabel "{/Symbol q}_{13}"
+
+set xr[*:*]
+set yr[*:*]
+
+set log x
+set format x "10^{%L}"
+
+#set xtics ('1' 100000) 
+
+g2(x)=b2
+g3(x)=b3
+g4(x)=b4
+g5(x)=b5
+
+
+fit g2(x) filen2 u 1:4 via b2
+fit g3(x) filen3 u 1:4 via b3
+fit g4(x) filen4 u 1:4 via b4
+fit g5(x) filen5 u 1:4 via b5
+
+
+set pointsize 0.3
+set term qt 2;
+
+plot filen2 u 1:4 w lp t "n=2" ls 9,\
+     g2(x) ls 9,\
+     filen3 u 1:4 w lp t "n=3" ls 7,\
+     g3(x) ls 7,\
+     filen4 u 1:4 w lp t "n=4" ls 5,\
+     g4(x) ls 5,\
+     filen5 u 1:4 w lp t "n=5" ls 3,\
+     g5(x) ls 3
+     
+set term pdfcairo enh solid font "Arial,18" rounded lw 1.5
+set output "plot_theta13_vs_time.pdf"
+rep; set term qt 2; rep;
+
+
+
+
+######################
+#PLOT theta23 vs t
+######################
+set key top left vertical maxrows 10 font "Arial,15"
+set xlabel "time [timesteps]" 
+set ylabel "{/Symbol q}_{23}"
+
+set xr[*:*]
+set yr[*:*]
+
+set log x
+set format x "10^{%L}"
+
+h2(x)=c2
+h3(x)=c3
+h4(x)=c4
+h5(x)=c5
+
+
+fit h2(x) filen2 u 1:4 via c2
+fit h3(x) filen3 u 1:4 via c3
+fit h4(x) filen4 u 1:4 via c4
+fit h5(x) filen5 u 1:4 via c5
+
+set pointsize 0.3
+set term qt 3;
+
+plot filen2 u 1:4 w lp t "n=2" ls 9,\
+     h2(x) ls 9,\
+     filen3 u 1:4 w lp t "n=3" ls 7,\
+     h3(x) ls 7,\
+     filen4 u 1:4 w lp t "n=4" ls 5,\
+     h4(x) ls 5,\
+     filen5 u 1:4 w lp t "n=5" ls 3,\
+     h5(x) ls 3
+     
+set term pdfcairo enh solid font "Arial,18" rounded lw 1.5
+set output "plot_theta23_vs_time.pdf"
+rep; set term qt 3; rep;
+
+
+
+
+### Print the results to a file ###
+set print "theta_vs_n.txt" append
+print 2,a2,b2,c2
+print 3,a3,b3,c3
+print 4,a4,b4,c4
+print 5,a5,b5,c5
