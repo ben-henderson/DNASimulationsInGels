@@ -1,5 +1,14 @@
+<<<<<<< HEAD
 out.data filter=lfs diff=lfs merge=lfs -text
 Given/n2/out.data filter=lfs diff=lfs merge=lfs -text
 Given/n3/out.data filter=lfs diff=lfs merge=lfs -text
 Given/n4/out.data filter=lfs diff=lfs merge=lfs -text
 Given/n5/out.data filter=lfs diff=lfs merge=lfs -text
+=======
+Simulations/n=2/4/data/out.data filter=lfs diff=lfs merge=lfs -text
+Simulations/n=2/5/data/out.data filter=lfs diff=lfs merge=lfs -text
+Simulations/n=2/6/data/out.data filter=lfs diff=lfs merge=lfs -text
+Simulations/n=0/6/data/out.data filter=lfs diff=lfs merge=lfs -text
+Simulations/n=2/3/data/out.data filter=lfs diff=lfs merge=lfs -text
+Simulations/n=0/5/data/out.data filter=lfs diff=lfs merge=lfs -text
+>>>>>>> 10451fc267cef6c7f98f0c4143a7ab9ead4880d5
