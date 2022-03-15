@@ -65,7 +65,7 @@ neighbor 2.0 bin
 neigh_modify every 1 delay 0 check yes
 
 restart ${trestart} oxDNA.equil.N${N}.Restart
-read_data initconf_N${N}
+read_data n2f3.txt
 #read_restart data/oxDNA.equil.N${N}.Restart.20000000
 #reset_timestep 0
 
