@@ -275,7 +275,9 @@ if(argc==10)
     /********************************************************************/
     /*Compute the COM of the three arms near to the core of the molecule*/
     /********************************************************************/
-    vector<vector <double> > core(frames, vector<double>(3));
+    vector<vector <double> > c1(frames, vector<double>(3));
+    vector<vector <double> > c2(frames, vector<double>(3));
+    vector<vector <double> > c3(frames, vector<double>(3));
     
     //First bp at the beggining of arm1: 27-79
     int id1a1=27;
@@ -291,22 +293,24 @@ if(argc==10)
     
     for (int t=0; t<frames; t++)
     {
-        vector <double> c1(3);
-        vector <double> c2(3);
-        vector <double> c3(3);
+        vector <double> cc1(3);
+        vector <double> cc2(3);
+        vector <double> cc3(3);
         
         //Beggining of the three dsDNA arms (at the core)
         for(int d=0; d<3; d++)
         {            
-            c1[d] = (com[t][d][id1a1-1] + com[t][d][id2a1-1])/2.0;
-            c2[d] = (com[t][d][id1a2-1] + com[t][d][id2a2-1])/2.0;
-            c3[d] = (com[t][d][id1a3-1] + com[t][d][id2a3-1])/2.0;
+            cc1[d] = (com[t][d][id1a1-1] + com[t][d][id2a1-1])/2.0;
+            cc2[d] = (com[t][d][id1a2-1] + com[t][d][id2a2-1])/2.0;
+            cc3[d] = (com[t][d][id1a3-1] + com[t][d][id2a3-1])/2.0;
         }
                 
         //COM of the molecule at the core
         for(int d=0; d<3; d++)
         { 
-            core[t][d] = (c1[d] + c2[d] + c3[d])/3.0;
+            c1[t][d]=cc1[d];
+            c2[t][d]=cc2[d];
+            c3[t][d]=cc3[d];
         }
     
     }
@@ -318,7 +322,7 @@ if(argc==10)
     vector<vector <double> > dsdna1(frames, vector<double>(3));
     vector<vector <double> > dsdna2(frames, vector<double>(3));
     vector<vector <double> > dsdna3(frames, vector<double>(3));
-      
+
     //First bp at the end of arm1: 8-98
     int id1a1end=8;
     int id2a1end=98;
@@ -352,9 +356,13 @@ if(argc==10)
      
         for(int d=0; d<3; d++)
         {
-            v1[d] = c1end[d] - core[t][d];
-            v2[d] = c2end[d] - core[t][d];
-            v3[d] = c3end[d] - core[t][d];
+            //v1[d] = c1end[d] - core[t][d];
+            //v2[d] = c2end[d] - core[t][d];
+            //v3[d] = c3end[d] - core[t][d];
+
+            v1[d] = c1end[d] - c1[t][d];
+            v2[d] = c2end[d] - c2[t][d];
+            v3[d] = c3end[d] - c3[t][d];
         }
         
         //The magnitude of the previous vectors
